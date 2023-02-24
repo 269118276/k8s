@@ -10,22 +10,20 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
-sysctl -p /etc/sysctl.d/k8s.conf
-
-echo -e "\033[32m ############# 关闭防火墙 ############ \033[0m"
+sysctl -p /etc/sysctl.d/k8s.conf > /dev/null 2>&1
 
 echo -e "\033[32m ############# 配置安装docker的阿里云repo源 ############ \033[0m"
 # step 1: 安装必要的一些系统工具
-sudo yum install -y yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
+yum install -y yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
 # Step 2: 添加软件源信息
-sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 # Step 3
-sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
 # Step 4: 更新并安装Docker-CE
-sudo yum makecache fast > /dev/null 2>&1
-sudo yum -y install docker-ce > /dev/null 2>&1
+yum makecache fast > /dev/null 2>&1
+yum -y install docker-ce > /dev/null 2>&1
 # Step 4: 开启Docker服务
-sudo service docker start && systemctl enable docker > /dev/null 2>&1
+systemctl start docker && systemctl enable docker > /dev/null 2>&1
 
 # 注意：
 # 官方软件源默认启用了最新的软件，您可以通过编辑软件源的方式获取各个版本的软件包。例如官方并没有将测试版本的软件源置为可用，您可以通过以下方式开启。同理可以开启各种测试版本等。
@@ -44,6 +42,10 @@ sudo service docker start && systemctl enable docker > /dev/null 2>&1
 # Step2: 安装指定版本的Docker-CE: (VERSION例如上面的17.03.0.ce.1-1.el7.centos)
 # sudo yum -y install docker-ce-[VERSION]
 
+echo -e "\033[32m ############# 安装基础软件包 ############ \033[0m"
+yum install -y wget net-tools gcc gcc-c++ make cmake libxml2-devel openssl-devel curl curl-devel unzip sudo ntp libaio-devel vim ncurses-devel autoconf automake zlib-devel python-devel epel-release openssh-server socat ipvsadm conntrack telnet > /dev/null 2>&1
+
+
 echo -e "\033[32m ############# 配置安装k8s的阿里云repo源 ############ \033[0m"
 cat << EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -56,7 +58,7 @@ gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors
 EOF
 
 echo -e "\033[32m ############# 配置时间同步 ############ \033[0m"
-ntp_server=10.163.1.106
+ntp_server=ntp.aliyun.com
 yum install -y chrony > /dev/null 2>&1
 sed -i '/^server/s/^/#/' /etc/chrony.conf
 sed -i '/^#server/a\server $ntp_server iburst' /etc/chrony.conf
