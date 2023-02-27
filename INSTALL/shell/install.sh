@@ -4,9 +4,10 @@ yum install -y containerd.io-1.6.6 > /dev/null 2>&1
 
 echo -e "\033[32m ############# 配置containerd镜像加速 ############ \033[0m"
 containerd config default > /etc/containerd/config.toml
-sed -i 's/systemcgroup=false/systemcgroup=true/' /etc/containerd/config.toml
-sed -i 's/^sandbox_image=.*/sandbox_image="registry.aliyuncs.com\/google_containers\/pause:3.8"/' /etc/containerd/config.toml
-sed -i 's/config_path=""/config_path="\/etc\/containerd\/certs.d/' /etc/containerd/config.toml
+sed -i 's/systemcgroup = false/systemcgroup = true/' /etc/containerd/config.toml
+#sed -i 's/sandbox_image = .*/sandbox_image = "registry.aliyuncs.com\/google_containers\/pause:3.8"/' /etc/containerd/config.toml
+sed -i 's/sandbox_image = .*/sandbox_image = "registry.cn-hangzhou.aliyuncs.com\/google_containers\/pause:3.8"/' /etc/containerd/config.toml
+sed -i 's/config_path = ""/config_path = "\/etc\/containerd\/certs.d"/' /etc/containerd/config.toml
 systemctl start containerd && systemctl enable containerd > /dev/null 2>&1
 
 echo -e "\033[32m ############# 修改/etc/crictl.yaml文件 ############ \033[0m"
@@ -68,7 +69,7 @@ cgroupDriver: systemd
 EOF
 
 # 基于kubeadm.yaml初始化k8s集群
-ctr -n=k8s.io images import $pwd/k8s_1.25.0.tar.gz
+#ctr -n=k8s.io images import $pwd/k8s_1.25.0.tar.gz
 # 在获取到相应的镜像后通过ctr images export这个命令把镜像输出到k8s_1.25.0.tar.gz这个文件，以上命令执行前当前目录必须要有这个文件。
 # 也可以通过ctr -n=k8s.io image pull命令直接拉取各个组件的镜像。
 # 可以通过命令查看k8s.io命名空间的镜像：crictl images
